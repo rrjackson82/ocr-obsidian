@@ -1,0 +1,2 @@
+pytesseract==0.3.13
+Telethon==1.44.0
