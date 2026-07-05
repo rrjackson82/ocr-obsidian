@@ -12,6 +12,6 @@ def ocr_image(url=""):
         return pytesseract.image_to_string(Image.open(url))
 
 
-img = input('url: ')
-
-print(ocr_image(img))
+if __name__ == "__main__":
+    img = input('url: ')
+    print(ocr_image(img))

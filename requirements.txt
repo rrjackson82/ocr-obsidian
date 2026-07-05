@@ -1,2 +1,3 @@
 pytesseract==0.3.13
 Telethon==1.44.0
+logging==0.4.9.6
