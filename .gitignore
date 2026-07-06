@@ -4,3 +4,4 @@ example-text.png
 bot.session
 .idea/
 __pycache__/
+config.toml

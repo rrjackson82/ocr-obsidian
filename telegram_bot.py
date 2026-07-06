@@ -64,6 +64,7 @@ async def handle_followup(event):
 
         if answer.lower() in ['b', 'ai']:
             await event.respond(f"You have selected to use AI ({model_info()['model']})")
+            await event.respond("Working with AI...")
             response = await process_image(client, state["chat_id"], state["img_msg_id"])
             await event.respond(response)
         elif answer.lower() in ['a', 'tesseract']:
