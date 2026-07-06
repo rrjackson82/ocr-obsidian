@@ -6,6 +6,7 @@ from telethon import TelegramClient, events, utils
 from os import getenv
 from dotenv import load_dotenv
 from tesseract_ocr import ocr_image_from_telethon
+from ollama_ocr import model_info, process_image
 
 logging.basicConfig(level=logging.INFO)
 
@@ -62,14 +63,15 @@ async def handle_followup(event):
         answer = event.text.lower()
 
         if answer.lower() in ['b', 'ai']:
-            await event.respond("You selected to use AI")
-
+            await event.respond(f"You have selected to use AI ({model_info()['model']})")
+            response = await process_image(client, state["chat_id"], state["img_msg_id"])
+            await event.respond(response)
         elif answer.lower() in ['a', 'tesseract']:
             await event.respond("You have selected to use tesseract")
             text = await ocr_image_from_telethon(client, state["chat_id"], state["img_msg_id"])
             await event.respond(text)
-        else:
-            await event.respond("Response not in options")
+        # else:
+            # await event.respond("Response not in options")
 
 
 client.start()
