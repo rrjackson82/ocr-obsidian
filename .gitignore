@@ -1,6 +1,6 @@
 .env
 example-text.png
-.venv
+.venv/
 bot.session
-.idea
-__pycache__
+.idea/
+__pycache__/
