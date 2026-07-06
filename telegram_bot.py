@@ -5,7 +5,7 @@ import logging
 from telethon import TelegramClient, events, utils
 from os import getenv
 from dotenv import load_dotenv
-from get_ocr import ocr_image_from_telethon
+from tesseract_ocr import ocr_image_from_telethon
 
 logging.basicConfig(level=logging.INFO)
 
@@ -68,6 +68,8 @@ async def handle_followup(event):
             await event.respond("You have selected to use tesseract")
             text = await ocr_image_from_telethon(client, state["chat_id"], state["img_msg_id"])
             await event.respond(text)
+        else:
+            await event.respond("Response not in options")
 
 
 client.start()
