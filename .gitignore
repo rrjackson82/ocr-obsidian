@@ -1,3 +1,4 @@
 .env
 example-text.png
 .venv
+bot.session
