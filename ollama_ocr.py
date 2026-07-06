@@ -2,6 +2,7 @@ import re
 from ollama import AsyncClient, ResponseError
 from img_process import convert_img_to_bytes
 from fetch_settings import Settings
+import ollama_handler
 
 settings = Settings.load()
 ai_model = settings.ai_model
@@ -40,12 +41,7 @@ async def process_image(tg_client, chat_id, msg_id):
         - Do not translate, summarize, or paraphrase. Transcribe exactly what is written.
 
         Begin transcription now."""
-        response = await client.chat(model=ai_model, messages=[
-        {
-            "role": "user",
-            "content": ocr_prompt,
-            "images": [img_buf.getvalue()] # Can be URL or bytes
-        }], options={"temperature": settings.ai_temp})
+        response = await ollama_handler.img_prompt(ocr_prompt, img_buf.getvalue())
 
         raw_text = response.message.content
 
@@ -66,12 +62,7 @@ async def process_image(tg_client, chat_id, msg_id):
 
         Convert the above into clean Markdown now."""
 
-        formatted_markdown = await client.chat(model=ai_model, messages=[
-            {
-                "role": "user",
-                "content": format_prompt,
-            }
-        ], options={"temperature": settings.ai_temp})
+        formatted_markdown = await ollama_handler.text_prompt(format_prompt)
 
         final_markdown = re.sub(r'^```(?:markdown)?\n?|\n?```$', '', formatted_markdown.message.content.strip())
         return final_markdown
