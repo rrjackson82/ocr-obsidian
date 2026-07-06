@@ -1,10 +1,14 @@
 from fetch_settings import Settings, Vault
-
+from ollama import AsyncClient, ResponseError
 settings = Settings.load()
-def get_def():
-    print(settings.default_vault)
 
 def search_tags(vault: Vault):
     print(f"Searching for tags in '{vault.name}'")
 
-get_def()
+async def generate_file_data(content):
+    return
+
+def create_note(vault: Vault, content: str):
+    print('---///---')
+    print(f"Creating note '{vault.name}' in vault '{vault.name}'")
+    print('---///---')

@@ -2,11 +2,12 @@
 
 
 import logging
-from telethon import TelegramClient, events, utils
+from telethon import TelegramClient, events, utils, Button
 from os import getenv
 from dotenv import load_dotenv
 from tesseract_ocr import ocr_image_from_telethon
 from ollama_ocr import model_info, process_image
+from fetch_settings import Settings
 
 logging.basicConfig(level=logging.INFO)
 
@@ -43,9 +44,8 @@ async def handle_image(event):
         "img_msg_id": event.id
     }
     await event.respond("""
-    Image detected.
-    1) OCR model selection
-    Please select which OCR model (image to text engine) you would like to use
+    Step 1) OCR model selection
+    \nPlease select which OCR model (image to text engine) you would like to use:
     \n\ta) Tesseract (machine learning: faster, less accurate. Easiest to start)
     \n\tb) Locally hosted AI (you host, add your own endpoint in /settings: Slower but more accurate)
     \nRespond with 'a', 'b', 'tesseract', or 'ai'
@@ -56,7 +56,7 @@ async def handle_image(event):
 async def handle_followup(event):
     state = user_state.get(event.sender_id)
     if not state:
-        event.respond("User state err")
+        await event.respond("User state err")
         return
     
     if state["step"] == "ask_ocr_model":
@@ -67,12 +67,37 @@ async def handle_followup(event):
             await event.respond("Working with AI...")
             response = await process_image(client, state["chat_id"], state["img_msg_id"])
             await event.respond(response)
+            user_state[event.sender_id] = {
+                "step": "ask_obsidian_vault",
+                "markdown": response,
+            }
+            state = user_state.get(event.sender_id)
         elif answer.lower() in ['a', 'tesseract']:
             await event.respond("You have selected to use tesseract")
             text = await ocr_image_from_telethon(client, state["chat_id"], state["img_msg_id"])
             await event.respond(text)
         # else:
             # await event.respond("Response not in options")
+    if state["step"] == "ask_obsidian_vault":
+        buttons = []
+        usr_vaults = Settings.load().vaults
+        for vault in usr_vaults:
+            buttons.append(Button.inline(vault.name, f"{vault.name}".encode()))
+        await event.respond("Step 2) Vault selection", buttons=buttons)
+
+
+@client.on(events.CallbackQuery)
+async def handle_button(event):
+    data = event.data #returns bytes
+    state = user_state.get(event.sender_id)
+    await event.answer()
+    print(state["step"])
+    if state["step"] == "ask_obsidian_vault":
+        await event.respond(f"Selected '{data}', generating file data (title, filename, etc)")
+        # generate tags, title, file name, etc
+        await event.respond("Adding to Vault...")
+
+
 
 
 client.start()
