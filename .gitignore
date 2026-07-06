@@ -2,3 +2,5 @@
 example-text.png
 .venv
 bot.session
+.idea
+__pycache__
