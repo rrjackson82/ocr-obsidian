@@ -2,7 +2,7 @@
 [ai]
 endpoint = "http://localhost:11434" # This is the default endpoint for ollama
 model = "qwen2.5vl:3b" # This is the model I use
-temperature = 0.2 # The lower the number the better
+temperature = 0.2 # The lower the number the better for OCR
 
 [vaults]
 default = "recipies" # default vault
