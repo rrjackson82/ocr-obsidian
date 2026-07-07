@@ -41,7 +41,7 @@ class Settings:
         for v in self.vaults:
             if v == vault:
                 v.tags.append(tag)
-                self.save_vault(vault)
+                self.save()
 
     def add_vault(self, name: str, path: str):
         from obsidian import search_tags
@@ -57,11 +57,19 @@ class Settings:
     def list_vaults(self):
         return [(v.name, v.path )for v in self.vaults]
 
-    def save_vault(self, vault: Vault):
-        for v in self.vaults:
-            if v.name== vault.name:
-                with (open ("config.toml", "wb") as f):
-                    data = tomlkit.load(f)
-                    data["ai"]["endpoint"] = vault.ai_endpoint
-                    data["ai"]["model"] = vault.ai_model
-                    data["ai"]["temperature"] = vault.ai_temp
+    def save(self):
+        with (open ("config.toml", "rb") as f):
+            data = tomlkit.load(f)
+            data["ai"]["endpoint"] = self.ai_endpoint
+            data["ai"]["model"] = self.ai_model
+            data["ai"]["temperature"] = self.ai_temp
+            data["vaults"]["default"] = self.default_vault
+            data["vaults"]["items"] = [
+                {
+                    "name": v.name,
+                    "path": v.path,
+                    "tags": v.tags,
+                } for v in self.vaults
+            ]
+        with open ("config.toml", "w") as f:
+            tomlkit.dump(data, f)
