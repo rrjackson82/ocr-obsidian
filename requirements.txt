@@ -19,5 +19,6 @@ pytesseract==0.3.13
 python-dotenv==1.2.2
 rsa==4.9.1
 Telethon==1.44.0
+tomlkit==0.15.0
 typing-inspection==0.4.2
 typing_extensions==4.16.0

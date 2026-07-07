@@ -19,6 +19,7 @@ def search_tags(vault: fetch_settings.Vault):
     #     with open(file, "r") as f:
     #         file_content = f.read()
 
+    vault.tags = tags
     return tags
 
 async def generate_file_data(vault: fetch_settings.Vault, content):
@@ -55,6 +56,9 @@ async def generate_file_data(vault: fetch_settings.Vault, content):
     filename = data["filename"]
     tags = data["tags"]
     createdTag = data["createdTag"]
+
+    if createdTag:
+        search_tags(vault)
     return
 
 def create_note(vault: fetch_settings.Vault, content: str):
