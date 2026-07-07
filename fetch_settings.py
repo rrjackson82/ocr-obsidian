@@ -1,11 +1,12 @@
 import tomllib
-from pathlib import Path
 from dataclasses import dataclass, field
+
 
 @dataclass
 class Vault:
     name: str
     path: str
+    tags: list[str] = field(default_factory=list)
 
 @dataclass
 class Settings:
@@ -37,9 +38,12 @@ class Settings:
         return None
 
     def add_vault(self, name: str, path: str):
+        from obsidian import search_tags
         if self.get_vault(name):
             raise ValueError(f"Vault '{name}' already exists")
-        self.vaults.append(Vault(name=name, path=path))
+        new_vault = Vault(name=name, path=path)
+        new_vault.tags = search_tags(new_vault)
+        self.vaults.append(new_vault)
 
     def remove_vault(self, name: str):
         self.vaults = [v for v in self.vaults if v.name != name]

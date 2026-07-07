@@ -10,3 +10,4 @@ default = "recipies" # default vault
 [[vaults.items]]
 name = "recipies"
 path = "/Users/me/Obsidian/recipies" # Use an absolute path
+tags=[]
