@@ -13,7 +13,7 @@ def search_tags(vault: fetch_settings.Vault):
         ["grep", "-rh", "--include=*.md", "-o", r"#\w\+", path],
         capture_output=True, text=True
     )
-    tags = set(result.stdout.splitlines())
+    tags = list(set(result.stdout.splitlines()))
 
     # for file in path.rglob(f"{path}/**/*.md"):
     #     with open(file, "r") as f:
@@ -65,3 +65,6 @@ def create_note(vault: fetch_settings.Vault, content: str):
 if __name__ == '__main__':
     vault = settings.get_vault(settings.default_vault)
     print(search_tags(vault))
+    print("saving...")
+    settings.save()
+    print("done")

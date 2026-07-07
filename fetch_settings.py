@@ -1,4 +1,4 @@
-import tomllib
+import tomlkit
 from dataclasses import dataclass, field
 
 
@@ -19,7 +19,7 @@ class Settings:
     @classmethod
     def load(cls):
         with open ("config.toml", "rb") as f:
-            data = tomllib.load(f)
+            data = tomlkit.load(f)
 
         vault_data = data.get("vaults", {})
         vaults = [Vault(**item) for item in vault_data.get("items", [])]
@@ -37,6 +37,12 @@ class Settings:
                 return vault
         return None
 
+    def add_tag(self, tag: str, vault: Vault):
+        for v in self.vaults:
+            if v == vault:
+                v.tags.append(tag)
+                self.save()
+
     def add_vault(self, name: str, path: str):
         from obsidian import search_tags
         if self.get_vault(name):
@@ -50,3 +56,20 @@ class Settings:
 
     def list_vaults(self):
         return [(v.name, v.path )for v in self.vaults]
+
+    def save(self):
+        with (open ("config.toml", "rb") as f):
+            data = tomlkit.load(f)
+            data["ai"]["endpoint"] = self.ai_endpoint
+            data["ai"]["model"] = self.ai_model
+            data["ai"]["temperature"] = self.ai_temp
+            data["vaults"]["default"] = self.default_vault
+            data["vaults"]["items"] = [
+                {
+                    "name": v.name,
+                    "path": v.path,
+                    "tags": v.tags,
+                } for v in self.vaults
+            ]
+        with open ("config.toml", "w") as f:
+            tomlkit.dump(data, f)
