@@ -5,6 +5,7 @@ import logging
 from telethon import TelegramClient, events, utils, Button
 from os import getenv
 from dotenv import load_dotenv
+import obsidian
 from tesseract_ocr import ocr_image_from_telethon
 from ollama_ocr import model_info, process_image
 from fetch_settings import Settings
@@ -91,12 +92,17 @@ async def handle_button(event):
     data = event.data #returns bytes
     state = user_state.get(event.sender_id)
     await event.answer()
-    print(state["step"])
     if state["step"] == "ask_obsidian_vault":
-        await event.respond(f"Selected '{data}', generating file data (title, filename, etc)")
         # generate tags, title, file name, etc
-        await event.respond("Adding to Vault...")
+        vault_name = data.decode()
+        vault = obsidian.settings.get_vault(vault_name)
 
+        await event.respond(f"Selected '{vault_name}', generating file data (title, filename, etc)")
+        metadata = await obsidian.generate_file_data(vault, state["markdown"])
+        await event.respond(f"Metadata:\n{metadata}")
+        await event.respond("Adding to Vault...")
+        obsidian.create_note(vault, state["markdown"], metadata['filename'], metadata['tags'])
+        await event.respond(f"Created note {metadata['filename']}.md to vault '{vault_name}'")
 
 
 
