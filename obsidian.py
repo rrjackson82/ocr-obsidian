@@ -58,9 +58,6 @@ async def generate_file_data(vault: fetch_settings.Vault, content):
     raw = data.message.content
     raw = raw[raw.index('{'):raw.index('}')+1]
     data = loads(raw)
-    print("\n---///---///---///---")
-    print(data)
-    print("---///---///---///---\n")
     filename = data["filename"]
     tags = data["tags"]
     createdTag = data["createdTag"]
