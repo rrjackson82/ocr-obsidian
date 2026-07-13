@@ -1,6 +1,5 @@
 # TODO add commands for obsidian vault scanning and viewing, available tags, AI endpoints etc
 
-
 import logging
 from telethon import TelegramClient, events, utils, Button
 from os import getenv
@@ -36,6 +35,12 @@ async def help(event):
 async def settings(event):
     await event.respond("Coming soon")
 
+@client.on(events.NewMessage(pattern="/list"))
+async def list_vaults(event):
+    vaults = list_vaults()
+    await event.respond(f"Your registered vaults:\n{vaults}")
+
+## WHEN USER SENDS IMAGE
 @client.on(events.NewMessage(func=lambda e: bool(e.media) and utils.is_image(e.media)))
 async def handle_image(event):
     user_state[event.sender_id] = {
@@ -44,12 +49,13 @@ async def handle_image(event):
         "img_msg_id": event.id
     }
     state = user_state.get(event.sender_id)
-    await event.respond(f"Step 1) Generating metadata from image using {model_info()['model']}...")
+    await event.respond(f"Step 1) Generating metadata from image using {model_info()['model']}, this may take some time")
     print(f"user state: {user_state}")
 
     #generate metadata
     response = await process_image(client, state["chat_id"], state["img_msg_id"])
-    await event.respond(response)
+    # await event.respond(response)
+    await event.respond("Generated markdown from image.")
     user_state[event.sender_id] = {
         "step": "ask_obsidian_vault",
         "markdown": response,
@@ -108,7 +114,6 @@ async def handle_button(event):
 
         await event.respond(f"Selected '{vault_name}', generating file data (title, filename, etc)")
         metadata = await obsidian.generate_file_data(vault, state["markdown"])
-        await event.respond(f"Metadata:\n{metadata}")
         await event.respond("Adding to Vault...")
         obsidian.create_note(vault, state["markdown"], metadata['filename'], metadata['tags'])
         await event.respond(f"Created note {metadata['filename']}.md to vault '{vault_name}'")
