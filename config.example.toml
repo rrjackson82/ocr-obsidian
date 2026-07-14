@@ -8,6 +8,7 @@ temperature = 0.2 # The lower the number the better for OCR
 base_path = "/Users/me/Obsidian" # Folder where all your vaults live
 default = "recipies" # default vault
 # Add your Obsidian vaults (each is a folder named `name` inside base_path):
+# Final vault path will be base_path/name
 [[vaults.items]]
 name = "recipies"
 tags=[]
