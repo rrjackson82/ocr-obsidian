@@ -83,7 +83,7 @@ async def handle_followup(event):
         await event.respond("User state err")
         return
 
-    # after user clicks the button
+    # after user clicks the settings button
     if state["step"] == "settings" and state["function"] != "":
         match state["function"]:
             case "change_model":
@@ -91,10 +91,11 @@ async def handle_followup(event):
                 obsidian.settings.ai_model = text
                 obsidian.settings.save()
                 await event.respond(f"Done! Set model to {text}")
-            case "change_model":
-                return
             case "change_endpoint":
-                return
+                await event.respond(f"Changing Ollama endpoint to {text}...")
+                obsidian.settings.ai_endpoint = text
+                obsidian.settings.save()
+                await event.respond(f"Done! Set model to {text}")
             case "add_vault":
                 return
 
@@ -119,26 +120,39 @@ async def handle_button(event):
         match data.decode().strip().lower():
             case "change model":
                 await event.respond(f"""Ok, let's change the model.
-
 Please type in the exact model name.
- 
-For example: Type 'qwen2.5vl:3b' for the 'qwen2.5vl:3b' model.
+ For example, Type 'qwen2.5vl:3b' for the 'qwen2.5vl:3b' model.
 This should be the same thing you type to download models with ollama:
 ```ollama run <model-name>``` or ```ollama pull <model name>```
-
-For a list of all models, run ```ollama list```
-
-You are currently using {obsidian.settings.ai_model}""")
+For a list of all models installed on your machine, run ```ollama list``` in your terminal.
+Make sure you have the model actually installed!
+You are currently using {obsidian.settings.ai_model}
+Which model would you like to change to?""")
                 user_state[event.sender_id] = {
                     "step": "settings",
                     "function": "change_model"
                 }
+
+
             case "change endpoint":
-                await event.respond(f"You selected to change the endpoint")
+                await event.respond(f"""You selected to change the endpoint. 
+You are currently using `
+``{obsidian.settings.ai_endpoint}```
+
+Ollama's default is 
+```http://localhost:11434```
+
+Your endpoint should start with 'http://' or 'https://'. An example would be:
+```http://123.45.678.90:11434```
+
+Please type the endpoint you'd like to use. 
+""")
                 user_state[event.sender_id] = {
                     "step": "settings",
                     "function": "change_endpoint"
                 }
+
+
             case "add vault":
                 await event.respond(f"You selected to add a vault")
                 user_state[event.sender_id] = {
