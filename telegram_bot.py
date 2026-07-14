@@ -97,27 +97,12 @@ async def handle_followup(event):
                 obsidian.settings.save()
                 await event.respond(f"Done! Set model to {text}")
     if state["step"] == "settings" and state["function"] == "create_vault":
-        name = ""
-        path = ""
         match state["substep"]:
             case "vault_name": # After user inputs the name of the vault
                 name = text
-                await event.respond(f"Name: {name}\nWhere would you like to store this on your computer? Give an absolute path")
-                user_state[event.sender_id] = {
-                    "step": "settings",
-                    "function": "create_vault",
-                    "substep": "vault_path"
-                }
-            case "vault_path":
-                path = text
-                obsidian.settings.create_vault(name, path)
-                await event.respond(f"Created vault '{name}' at path '{path}'")
-
-        # user_state[event.sender_id] = {
-        #     "step": "settings",
-        #     "function": "create_vault",
-        #     "substep": ""
-        # }
+                obsidian.settings.create_vault(name)
+                vault = obsidian.settings.get_vault(name)
+                await event.respond(f"Created vault '{name}' at path '{vault.path}'")
 
 @client.on(events.CallbackQuery)
 async def handle_button(event):

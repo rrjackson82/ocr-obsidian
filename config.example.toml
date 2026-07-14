@@ -5,9 +5,9 @@ model = "qwen2.5vl:3b" # This is the model I use
 temperature = 0.2 # The lower the number the better for OCR
 
 [vaults]
+base_path = "/Users/me/Obsidian" # Folder where all your vaults live
 default = "recipies" # default vault
-# Add your Obsidian vaults:
+# Add your Obsidian vaults (each is a folder named `name` inside base_path):
 [[vaults.items]]
 name = "recipies"
-path = "/Users/me/Obsidian/recipies" # Use an absolute path
 tags=[]
