@@ -15,6 +15,7 @@ class Settings:
     ai_endpoint: str
     ai_model: str
     ai_temp: float
+    base_vault_path: str
     default_vault: str
     vaults: list[Vault] = field(default_factory=list)
 
@@ -24,11 +25,20 @@ class Settings:
             data = tomlkit.load(f)
 
         vault_data = data.get("vaults", {})
-        vaults = [Vault(**item) for item in vault_data.get("items", [])]
+        base_vault_path = vault_data["base_path"]
+        vaults = [
+            Vault(
+                name=item["name"],
+                path=str(Path(base_vault_path) / item["name"]),
+                tags=item.get("tags", []),
+            )
+            for item in vault_data.get("items", [])
+        ]
         return cls(
             ai_endpoint=data["ai"]["endpoint"],
             ai_model=data["ai"]["model"],
             ai_temp=data["ai"]["temperature"],
+            base_vault_path=base_vault_path,
             default_vault=vault_data.get("default", ""),
             vaults=vaults
         )
@@ -45,25 +55,26 @@ class Settings:
                 v.tags.append(tag)
                 self.save()
 
-    def create_vault(self, name: str, path: str):
+    def create_vault(self, name: str):
         from obsidian import search_tags
         if self.get_vault(name):
             raise ValueError(f"Vault '{name}' already exists")
 
-        vault_path = Path.joinpath(path, name)
+        vault_path = Path(self.base_vault_path) / name
         vault_path.mkdir(parents=True, exist_ok=True)
 
-        new_vault = Vault(name=name, path=path)
+        new_vault = Vault(name=name, path=str(vault_path))
         new_vault.tags = search_tags(new_vault)
         self.vaults.append(new_vault)
         self.save()
 
-    def add_vault(self, name: str, path: str):
+    def add_vault(self, name: str):
         from obsidian import search_tags
         if self.get_vault(name):
             raise ValueError(f"Vault '{name}' already exists")
 
-        new_vault = Vault(name=name, path=path)
+        vault_path = Path(self.base_vault_path) / name
+        new_vault = Vault(name=name, path=str(vault_path))
         new_vault.tags = search_tags(new_vault)
         self.vaults.append(new_vault)
         self.save()
@@ -80,11 +91,11 @@ class Settings:
             data["ai"]["endpoint"] = self.ai_endpoint
             data["ai"]["model"] = self.ai_model
             data["ai"]["temperature"] = self.ai_temp
+            data["vaults"]["base_path"] = self.base_vault_path
             data["vaults"]["default"] = self.default_vault
             data["vaults"]["items"] = [
                 {
                     "name": v.name,
-                    "path": v.path,
                     "tags": v.tags,
                 } for v in self.vaults
             ]
