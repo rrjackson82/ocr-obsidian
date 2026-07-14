@@ -36,7 +36,7 @@ async def help(event):
 @client.on(events.NewMessage(pattern="/settings"))
 async def settings(event):
     buttons = [Button.inline("Change Model", b"Change Model"), Button.inline("Change Endpoint", b"Change Endpoint"),
-               Button.inline("Add Vault", b"Add Vault")]
+               Button.inline("Create New Vault", b"Create Vault")]
     user_state[event.sender_id] = {
         "step": "settings",
         "function": ""
@@ -96,9 +96,28 @@ async def handle_followup(event):
                 obsidian.settings.ai_endpoint = text
                 obsidian.settings.save()
                 await event.respond(f"Done! Set model to {text}")
-            case "add_vault":
-                return
+    if state["step"] == "settings" and state["function"] == "create_vault":
+        name = ""
+        path = ""
+        match state["substep"]:
+            case "vault_name": # After user inputs the name of the vault
+                name = text
+                await event.respond(f"Name: {name}\nWhere would you like to store this on your computer? Give an absolute path")
+                user_state[event.sender_id] = {
+                    "step": "settings",
+                    "function": "create_vault",
+                    "substep": "vault_path"
+                }
+            case "vault_path":
+                path = text
+                obsidian.settings.create_vault(name, path)
+                await event.respond(f"Created vault '{name}' at path '{path}'")
 
+        # user_state[event.sender_id] = {
+        #     "step": "settings",
+        #     "function": "create_vault",
+        #     "substep": ""
+        # }
 
 @client.on(events.CallbackQuery)
 async def handle_button(event):
@@ -136,8 +155,8 @@ Which model would you like to change to?""")
 
             case "change endpoint":
                 await event.respond(f"""You selected to change the endpoint. 
-You are currently using `
-``{obsidian.settings.ai_endpoint}```
+You are currently using
+```{obsidian.settings.ai_endpoint}```
 
 Ollama's default is 
 ```http://localhost:11434```
@@ -153,11 +172,20 @@ Please type the endpoint you'd like to use.
                 }
 
 
-            case "add vault":
-                await event.respond(f"You selected to add a vault")
+            case "create vault":
+                vaults = ""
+                for vault in obsidian.settings.list_vaults():
+                    name = vault[0]
+                    vaults = vaults + "    __" + name + "__\n"
+                await event.respond(f"""You selected to add a vault.
+Your current vaults are:
+{vaults}
+""")
+                await event.respond("What would you like to name your vault? This will be the folder name.")
                 user_state[event.sender_id] = {
                     "step": "settings",
-                    "function": "add_vault"
+                    "function": "create_vault",
+                    "substep": "vault_name"
                 }
 
 

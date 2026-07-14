@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import tomlkit
 from dataclasses import dataclass, field
 
@@ -43,13 +45,28 @@ class Settings:
                 v.tags.append(tag)
                 self.save()
 
+    def create_vault(self, name: str, path: str):
+        from obsidian import search_tags
+        if self.get_vault(name):
+            raise ValueError(f"Vault '{name}' already exists")
+
+        vault_path = Path.joinpath(path, name)
+        vault_path.mkdir(parents=True, exist_ok=True)
+
+        new_vault = Vault(name=name, path=path)
+        new_vault.tags = search_tags(new_vault)
+        self.vaults.append(new_vault)
+        self.save()
+
     def add_vault(self, name: str, path: str):
         from obsidian import search_tags
         if self.get_vault(name):
             raise ValueError(f"Vault '{name}' already exists")
+
         new_vault = Vault(name=name, path=path)
         new_vault.tags = search_tags(new_vault)
         self.vaults.append(new_vault)
+        self.save()
 
     def remove_vault(self, name: str):
         self.vaults = [v for v in self.vaults if v.name != name]
