@@ -1,4 +1,7 @@
 from datetime import datetime
+
+from ollama import ResponseError
+
 import fetch_settings
 from ollama_handler import text_prompt
 from pathlib import Path
@@ -22,7 +25,6 @@ def search_tags(vault: fetch_settings.Vault):
 async def generate_file_data(vault: fetch_settings.Vault, content):
     if not vault.tags:
         search_tags(vault)
-    print(f"Vault tags: {vault.tags}")
     prompt = f"""Take the following file and add the following file-data:
     -File name
     -Tags
@@ -54,7 +56,10 @@ async def generate_file_data(vault: fetch_settings.Vault, content):
     }}
     
     """
-    data = await text_prompt(prompt)
+    try:
+        data = await text_prompt(prompt)
+    except ResponseError:
+        raise ResponseError # pass the error along
     raw = data.message.content
     raw = raw[raw.index('{'):raw.index('}')+1]
     data = loads(raw)

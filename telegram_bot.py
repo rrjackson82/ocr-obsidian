@@ -1,8 +1,6 @@
-# TODO add commands for obsidian vault scanning and viewing, available tags, AI endpoints etc
-
 import logging
-from urllib.parse import uses_relative
 
+from ollama import ResponseError
 from telethon import TelegramClient, events, utils, Button
 from os import getenv
 from dotenv import load_dotenv
@@ -41,7 +39,7 @@ async def help(event):
 @client.on(events.NewMessage(pattern="/settings"))
 async def settings(event):
     buttons = [Button.inline("Change Model", b"Change Model"), Button.inline("Change Endpoint", b"Change Endpoint"),
-               Button.inline("Create New Vault", b"Create Vault")]
+               Button.inline("Create New Vault", b"Create Vault"), Button.inline("Add Existing Vault", b"Add Vault")]
     user_state[event.sender_id] = {
         "step": "settings",
         "function": ""
@@ -101,13 +99,19 @@ async def handle_followup(event):
                 obsidian.settings.ai_endpoint = text
                 obsidian.settings.save()
                 await event.respond(f"Done! Set model to {text}.")
-    if state["step"] == "settings" and state["function"] == "create_vault":
-        match state["substep"]:
-            case "vault_name": # After user inputs the name of the vault
+            case "create_vault":
                 name = text
                 obsidian.settings.create_vault(name)
                 vault = obsidian.settings.get_vault(name)
                 await event.respond(f"Created vault '{name}' at path '{vault.path}'")
+            case "add_vault":
+                print("hello from add_vault")
+                await event.respond(f"Adding vault '{text}'...")
+                try:
+                    obsidian.settings.add_vault(text)
+                    await event.respond("Added vault!")
+                except ValueError:
+                    await event.respond(f"Vault '{text}' already exists!")
 
 @client.on(events.CallbackQuery)
 async def handle_button(event):
@@ -120,10 +124,14 @@ async def handle_button(event):
         vault = obsidian.settings.get_vault(vault_name)
 
         await event.respond(f"Generating file data (title, filename, etc). This may take some time...")
-        metadata = await obsidian.generate_file_data(vault, state["markdown"])
-        await event.respond("Adding to Vault...")
-        obsidian.create_note(vault, state["markdown"], metadata['filename'], metadata['tags'])
-        await event.respond(f"Created note {metadata['filename']}.md to vault '{vault_name}'")
+        try:
+            metadata = await obsidian.generate_file_data(vault, state["markdown"])
+            await event.respond("Adding to Vault...")
+            obsidian.create_note(vault, state["markdown"], metadata['filename'], metadata['tags'])
+            await event.respond(f"Created note {metadata['filename']}.md to vault '{vault_name}'")
+        except ResponseError:
+            await event.respond("Ollama error - Check your endpoint, model, and make sure it's connected")
+
     elif state["step"] == "settings":
         # change model, change endpoint, add vault
         match data.decode().strip().lower():
@@ -175,7 +183,12 @@ Your current vaults are:
                 user_state[event.sender_id] = {
                     "step": "settings",
                     "function": "create_vault",
-                    "substep": "vault_name"
+                }
+            case "add vault":
+                await event.respond(f"You selected to add an existing vault. When you input a name, it scans your base folder for any vault by that name.")
+                user_state[event.sender_id] = {
+                    "step": "settings",
+                    "function": "add_vault"
                 }
 
 
