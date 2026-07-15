@@ -17,7 +17,7 @@ def model_info():
 async def text_prompt(prompt):
     try:
         await client.chat(ai_model)
-    except ResponseError as e:
+    except ResponseError:
         raise ResponseError("Ollama Error", 500)
 
     try:
@@ -28,13 +28,13 @@ async def text_prompt(prompt):
         }
         ], options={"temperature": settings.ai_temp})
         return response
-    except ResponseError as e:
+    except ResponseError:
         raise ResponseError("Ollama Error", 500)
 
 async def img_prompt(prompt, img_bytes):
     try:
         await client.chat(ai_model)
-    except ResponseError as e:
+    except ResponseError:
         raise ResponseError("Ollama Error", 500)
 
     try:
@@ -46,5 +46,5 @@ async def img_prompt(prompt, img_bytes):
             }
         ], options={"temperature": settings.ai_temp})
         return response
-    except ResponseError as e:
+    except ResponseError:
         raise ResponseError("Ollama Error", 500)

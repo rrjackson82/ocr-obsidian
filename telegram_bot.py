@@ -1,5 +1,5 @@
 import logging
-
+import httpx
 from ollama import ResponseError
 from telethon import TelegramClient, events, utils, Button
 from os import getenv
@@ -129,7 +129,7 @@ async def handle_button(event):
             await event.respond("Adding to Vault...")
             obsidian.create_note(vault, state["markdown"], metadata['filename'], metadata['tags'])
             await event.respond(f"Created note {metadata['filename']}.md to vault '{vault_name}'")
-        except ResponseError:
+        except (ResponseError, httpx.ConnectError, httpx.TimeoutException):
             await event.respond("Ollama error - Check your endpoint, model, and make sure it's connected")
 
     elif state["step"] == "settings":
@@ -185,7 +185,7 @@ Your current vaults are:
                     "function": "create_vault",
                 }
             case "add vault":
-                await event.respond(f"You selected to add an existing vault. When you input a name, it scans your base folder for any vault by that name.")
+                await event.respond(f"You selected to add an existing vault. Which vault would you like to add? This vault should already exist.")
                 user_state[event.sender_id] = {
                     "step": "settings",
                     "function": "add_vault"
