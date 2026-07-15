@@ -1,5 +1,4 @@
 from pathlib import Path
-
 import tomlkit
 from dataclasses import dataclass, field
 
@@ -45,7 +44,7 @@ class Settings:
 
     def get_vault(self, name: str) -> Vault | None:
         for vault in self.vaults:
-            if vault.name == name:
+            if vault.name.lower() == name.lower():
                 return vault
         return None
 
@@ -55,10 +54,12 @@ class Settings:
                 v.tags.append(tag)
                 self.save()
 
+    # create entirely new vault (new folder on your machine)
     def create_vault(self, name: str):
         from obsidian import search_tags
         if self.get_vault(name):
             raise ValueError(f"Vault '{name}' already exists")
+
 
         vault_path = Path(self.base_vault_path) / name
         vault_path.mkdir(parents=True, exist_ok=True)
@@ -68,6 +69,7 @@ class Settings:
         self.vaults.append(new_vault)
         self.save()
 
+    # add an existing vault
     def add_vault(self, name: str):
         from obsidian import search_tags
         if self.get_vault(name):
