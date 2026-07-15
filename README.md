@@ -22,8 +22,8 @@ The AI endpoint is designed to point to an Ollama endpoint. For more information
 ## Steps
 1. Clone the repository and enter the project directory:
    ```bash
-   git clone <repo-url>
-   cd ocr-obsidian-bot2
+   git clone https://github.com/rrjackson82/ocr-obsidian.git
+   cd ocr-obsidian
    ```
 2. (Optional but recommended) Create and activate a virtual environment:
    ```bash
