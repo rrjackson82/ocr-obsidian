@@ -22,14 +22,19 @@ client = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
 
 @client.on(events.NewMessage(pattern='/start'))
 async def start(event):
-    await event.respond('Hello! Begin by sending an image to be processed by the ocr')
+    await event.respond('Hello! Begin by sending an image to be processed by the ocr or type /help for available commands')
     logging.info(f'Start command received from {event.sender_id}')
 
 @client.on(events.NewMessage(pattern='/help'))
 async def help(event):
-    help_text = ("Hi :) Send images here to have it uploaded to an OCR tool, which scans for text present in the image and adds it to a specified Obisidan vault",
-    "/help: This command",
-    "/settings: Tweak settings such as default OCR model (under development)")
+    user_state[event.sender_id] = {
+        "step": "help"
+    }
+    help_text = ("""Hi :) Send images here to have it uploaded to an OCR tool, which scans for text in the image, converts it to markdown, and adds it to a chosen Obsidian vault
+
+/help: This command
+/settings: Tweak settings such as the AI model, AI endpoints, creating new vaults, and adding existing vaults
+/list: list all registered vaults.""")
     await event.respond(help_text)
     logging.info(f'Help command received from {event.sender_id}')
 
@@ -57,7 +62,7 @@ async def handle_image(event):
         "img_msg_id": event.id
     }
     state = user_state.get(event.sender_id)
-    await event.respond(f"Step 1) Generating metadata from image using {model_info()['model']}, this may take some time")
+    await event.respond(f"Step 1) Generating metadata from image using {model_info()['model']}, this may take some time...")
 
     #generate metadata
     response = await process_image(client, state["chat_id"], state["img_msg_id"])
@@ -87,15 +92,15 @@ async def handle_followup(event):
     if state["step"] == "settings" and state["function"] != "":
         match state["function"]:
             case "change_model":
-                await event.respond(f"Setting model to {text}")
+                await event.respond(f"Setting model to {text}...")
                 obsidian.settings.ai_model = text
                 obsidian.settings.save()
-                await event.respond(f"Done! Set model to {text}")
+                await event.respond(f"Done! Set model to {text}.")
             case "change_endpoint":
                 await event.respond(f"Changing Ollama endpoint to {text}...")
                 obsidian.settings.ai_endpoint = text
                 obsidian.settings.save()
-                await event.respond(f"Done! Set model to {text}")
+                await event.respond(f"Done! Set model to {text}.")
     if state["step"] == "settings" and state["function"] == "create_vault":
         match state["substep"]:
             case "vault_name": # After user inputs the name of the vault
@@ -114,7 +119,7 @@ async def handle_button(event):
         vault_name = data.decode()
         vault = obsidian.settings.get_vault(vault_name)
 
-        await event.respond(f"Selected '{vault_name}', generating file data (title, filename, etc)")
+        await event.respond(f"Generating file data (title, filename, etc). This may take some time...")
         metadata = await obsidian.generate_file_data(vault, state["markdown"])
         await event.respond("Adding to Vault...")
         obsidian.create_note(vault, state["markdown"], metadata['filename'], metadata['tags'])
