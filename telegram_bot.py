@@ -63,7 +63,10 @@ async def handle_image(event):
     await event.respond(f"Step 1) Generating metadata from image using {model_info()['model']}, this may take some time...")
 
     #generate metadata
-    response = await process_image(client, state["chat_id"], state["img_msg_id"])
+    try:
+        response = await process_image(client, state["chat_id"], state["img_msg_id"])
+    except (ResponseError, httpx.ConnectError, httpx.TimeoutException):
+        await event.respond("Ollama error - Check your endpoint, model, and make sure it's connected")
     # await event.respond(response)
     await event.respond("Generated markdown from image.")
     user_state[event.sender_id] = {
@@ -105,7 +108,6 @@ async def handle_followup(event):
                 vault = obsidian.settings.get_vault(name)
                 await event.respond(f"Created vault '{name}' at path '{vault.path}'")
             case "add_vault":
-                print("hello from add_vault")
                 await event.respond(f"Adding vault '{text}'...")
                 try:
                     obsidian.settings.add_vault(text)
