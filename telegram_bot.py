@@ -20,6 +20,9 @@ client = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
 
 @client.on(events.NewMessage(pattern='/start'))
 async def start(event):
+    user_state[event.sender_id] = {
+        "step": "start"
+    }
     await event.respond('Hello! Begin by sending an image to be processed by the ocr or type /help for available commands')
     logging.info(f'Start command received from {event.sender_id}')
 
@@ -48,6 +51,9 @@ async def settings(event):
 
 @client.on(events.NewMessage(pattern="/list"))
 async def list_vaults(event):
+    user_state[event.sender_id] = {
+        "step": "list"
+    }
     vaults = list_vaults()
     await event.respond(f"Your registered vaults:\n{vaults}")
 
